@@ -1,0 +1,71 @@
+Constant buffer shared by pixel shaders
+
+ShaderEffectSequence
+	- ShaderEffect*
+		- Pixel Shader Constants
+		- BufferOutputShader
+			- Texture Slots
+		- MainOutputShader
+			- Texture Slots
+
+Texture slots come from texture table
+- buffer output shaders update texture slots as they get updated
+
+Shader Effect Sequence
+	{- Set of pre-defined textures
+	 - Set of buffer output shaders} - texture slots
+	- main output shaders 
+	- Shader Effects
+		- Texture slot references
+		- 
+
+
+Resource types
+- Textures
+- Buffer output shaders
+- Ray output shaders
+- Shader Effect
+
+- Shader effect
+	
+
+Things we want
+- Once off procedural textures
+- Regularly evaluated procedural textures
+- Loaded constant textures
+- Ray marching shaders
+
+Effect file
+- Header
+	- Number of Texture Resources
+	- Texture Resource Table Pointer
+	- Number of Shader Resources
+	- Shader Resource Table Pointer
+	- Number of Procedural Textures
+	- Number of Effects
+	- Effects pointer
+
+- Texture Resource Table Entry
+	- Size
+	- Data Pointer
+
+- Shader Resource Table Entry
+	- Size
+	- Type (2D/ray)
+	- Data Pointer
+
+- Procedural Texture
+	- Number Source Textures
+	- Source Texture Handle Table Pointer
+	- Shader Handle (must always be 2D)
+
+- Effect Entry
+	- Number Once Off Procedural Textures to Evaluate
+	- Pointer to list of procedural textures to evaluate (by id)
+	- Number of Animated Procedural Textures to Evaluate
+	- Pointer to list of procedural textures to evaluate (by id)
+	- Number of Source Textures
+	- Source Texture Handle Table Pointer
+	- Shader Handle
+
+

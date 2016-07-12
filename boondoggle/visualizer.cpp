@@ -3,12 +3,14 @@
 #include <dxgi.h>
 #include <stdint.h>
 #include "visualizer.h"
+#include "oculus_helpers.h"
 #include "../common/boondoggle_helpers.h"
+#include "OVR_CAPI_D3D.h"
 
 namespace
 {
-    const WCHAR* const DisplayWindowClassName = L"Boondoggle";
-    const WCHAR* const DisplayWindowTitle     = L"Boondoggle";
+    const WCHAR* const DISPLAY_CLASS_NAME = L"Boondoggle";
+    const WCHAR* const DISPLAY_TITLE      = L"Boondoggle";
 
     struct DisplayWindow
     {
@@ -21,20 +23,22 @@ namespace
         ID3D11RenderTargetView* BackBufferTarget;
         LONG                    Width;
         LONG                    Height;
-
+        
         DisplayWindow();
 
         bool OpenWindow( uint32_t width, uint32_t height );
 
         bool OpenDevice( /*optional*/ const LUID* luid = nullptr );
         
+        void CloseDevice();
+
         void Show();
 
         LRESULT WindowProc( UINT uMsg, WPARAM wParam, LPARAM lParam );
 
         void ShowError( LPCWSTR message, LPCWSTR caption );
 
-//        void Resize();
+        void Resize( uint32_t width, uint32_t height );
 
         ~DisplayWindow();
 
@@ -43,6 +47,7 @@ namespace
         DisplayWindow& operator=( const DisplayWindow& ) = delete;
     };
 
+
     DisplayWindow::DisplayWindow() 
         : WindowHandle( nullptr ),
           Device( nullptr ),
@@ -50,13 +55,18 @@ namespace
     {
     }
     
-    DisplayWindow::~DisplayWindow()
+    void DisplayWindow::CloseDevice()
     {
         COMRelease( BackBufferTarget );
         COMRelease( BackBuffer );
         COMRelease( SwapChain );
         COMRelease( Context );
         COMRelease( Device );
+    }
+    
+    DisplayWindow::~DisplayWindow()
+    {
+        CloseDevice();
 
         if ( WindowHandle != nullptr )
         {
@@ -64,7 +74,7 @@ namespace
             
             WindowHandle = nullptr;
 
-            ::UnregisterClassW( DisplayWindowClassName, ModuleInstance );
+            ::UnregisterClassW( DISPLAY_CLASS_NAME, ModuleInstance );
         }
     }
 
@@ -73,6 +83,26 @@ namespace
         if ( WindowHandle != nullptr )
         {
             ::ShowWindow( WindowHandle, SW_SHOW );
+        }
+    }
+
+    void DisplayWindow::Resize( uint32_t width, uint32_t height )
+    {
+        if ( WindowHandle != nullptr )
+        {
+            Width  = width;
+            Height = height;
+
+            ::RECT windowRectangle = { 0, 0, static_cast< LONG >( width ), static_cast< LONG >( height ) };
+
+            ::AdjustWindowRect( &windowRectangle, WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, FALSE );
+            ::SetWindowPos( WindowHandle, 
+                            nullptr, 
+                            0,
+                            0, 
+                            windowRectangle.right - windowRectangle.left, 
+                            windowRectangle.bottom - windowRectangle.top, 
+                            SWP_NOMOVE | SWP_NOZORDER | SWP_SHOWWINDOW );
         }
     }
 
@@ -141,9 +171,7 @@ namespace
         icon = ::ExtractIconW( ModuleInstance, exePath, 0 );
 
         // Register the windows class
-        WNDCLASSW windowClass;
-
-        ::ZeroMemory( &windowClass, sizeof( WNDCLASSW ) );
+        WNDCLASSW windowClass = {};
 
         windowClass.style         = CS_OWNDC;
         windowClass.lpfnWndProc   = DisplayWindowProc;
@@ -152,9 +180,9 @@ namespace
         windowClass.hInstance     = ModuleInstance;
         windowClass.hIcon         = icon;
         windowClass.hCursor       = ::LoadCursorA( NULL, IDC_ARROW );
-        windowClass.hbrBackground = ( HBRUSH )::GetStockObject( BLACK_BRUSH );
+        windowClass.hbrBackground = reinterpret_cast< HBRUSH >( ::GetStockObject( BLACK_BRUSH ) );
         windowClass.lpszMenuName  = 0;
-        windowClass.lpszClassName = DisplayWindowClassName;
+        windowClass.lpszClassName = DISPLAY_CLASS_NAME;
 
         ::RegisterClassW( &windowClass );
 
@@ -165,12 +193,12 @@ namespace
         inner.right  = width;
         inner.bottom = height;
 
-        ::AdjustWindowRect( &inner, WS_OVERLAPPEDWINDOW, false );
+        ::AdjustWindowRect( &inner, WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, false );
 
         WindowHandle =
-            ::CreateWindowW( DisplayWindowClassName,
-                             DisplayWindowTitle,
-                             WS_OVERLAPPEDWINDOW,
+            ::CreateWindowW( DISPLAY_CLASS_NAME,
+                             DISPLAY_TITLE,
+                             WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME,
                              0,
                              0,
                              ( inner.right - inner.left ),
@@ -273,9 +301,7 @@ namespace
             return false;
         }
 
-        DXGI_SWAP_CHAIN_DESC swapChainDesc;
-        
-        ::ZeroMemory( &swapChainDesc, sizeof( swapChainDesc ) );
+        DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
         
         swapChainDesc.SwapEffect                         = DXGI_SWAP_EFFECT_DISCARD;
         swapChainDesc.BufferCount                        = 2;
@@ -343,11 +369,52 @@ namespace
 
         return !isQuit;
     }
+
+    const uint32_t OCULUS_MIRROR_SCALE = 2;
 }
 
 void Boondoggle::DisplayOculusVR()
 {
     DisplayWindow window;
+
+    ::ovrResult oculusResult = ::ovr_Initialize( nullptr );
+
+    if ( OVR_FAILURE( oculusResult ) )
+    {
+        ::MessageBoxW( nullptr, L"Can't initialize oculus SDK", L"Error initializing oculus SDK", MB_OK | MB_ICONERROR );
+        return;
+    }
+
+    if ( window.OpenWindow( 0, 0 ) )
+    {
+        while ( PumpMessages() )
+        {
+            ::ovrSession          oculusSession;
+            ::ovrGraphicsLuid     adapterLUID;
+
+            ::ovrResult           result         = ::ovr_Create( &oculusSession, &adapterLUID );
+            ::ovrHmdDesc          hmdDesc        = ::ovr_GetHmdDesc( oculusSession );
+
+            window.Resize( static_cast<uint32_t>( hmdDesc.Resolution.w / OCULUS_MIRROR_SCALE ),
+                           static_cast<uint32_t>( hmdDesc.Resolution.h / OCULUS_MIRROR_SCALE ) );
+
+            window.OpenDevice( reinterpret_cast< const LUID* >( &adapterLUID ) );
+
+            OculusSwapChain swapChains[ 2 ];
+            
+            if ( OVR_FAILURE( result ) )
+            {
+                ::Sleep( 10 );
+                continue;
+            }
+            
+            while ( PumpMessages() )
+            {
+
+            }
+        }
+
+    }
 }
 
 void Boondoggle::DisplayWindowed( uint32_t width, uint32_t height )
@@ -357,12 +424,11 @@ void Boondoggle::DisplayWindowed( uint32_t width, uint32_t height )
     if ( window.OpenWindow( width, height ) )
     {
         window.Show();
-
         window.OpenDevice();
 
         while ( PumpMessages() )
         {
-
+      
         }
     }
 }

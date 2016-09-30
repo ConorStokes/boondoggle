@@ -9,8 +9,8 @@
       "file":  "wave_capsules.hlsl"
     },
     {
-      "id": "mad_bars_ps",
-      "file":  "mad_bars.hlsl"
+      "id": "glowing_blobby_bars_ps",
+      "file":  "glowing_blobby_bars.hlsl"
     }
   ],
   "samplers": [
@@ -33,6 +33,10 @@
   ],
   "effects": [
     {
+      "id": "glowing_blobby_bars",
+      "shader": "glowing_blobby_bars_ps"
+    },
+    {
       "id": "wobbly_spheres_twisted_bars",
       "shader": "wobbly_spheres_twisted_bars_ps",
       "samplers": [ "default" ],
@@ -42,12 +46,8 @@
       "id": "wave_capsules",
       "shader": "wave_capsules_ps",
       "samplers": [ "sound_sampler" ],
-      "textures":  [ "sound" ]
-    },
-    {
-      "id": "mad_bars",
-      "shader": "mad_bars_ps"
-    },
+      "textures": [ "sound" ]
+    }
   ],
   "vertex_quad_shader": {
 

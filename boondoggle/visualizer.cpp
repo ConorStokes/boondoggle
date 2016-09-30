@@ -766,8 +766,7 @@ bool DisplayOculusVR( const wchar_t* packagePath )
             previousButtons   = inputState.Buttons;
             previousLeftDown  = resources.LeftDown;
             previousRightDown = resources.RightDown;
-
-
+            
             AudioUpdateResult audioUpdateResult = audio.Update( frameParameters.Constants );
 
             if ( audioUpdateResult == AudioUpdateResult::AUDIO_ERROR )
@@ -827,25 +826,25 @@ bool DisplayOculusVR( const wchar_t* packagePath )
                     const ::ovrFovPort&     fov      = eyeDesc[ eyeIndex ].Fov;
                     const ::ovrPosef&       eyePose  = eyePoses[ eyeIndex ];
 
-                    view.Left = viewport.Pos.x;
-                    view.Top = viewport.Pos.y;
-                    view.Width = viewport.Size.w;
+                    view.Left   = viewport.Pos.x;
+                    view.Top    = viewport.Pos.y;
+                    view.Width  = viewport.Size.w;
                     view.Height = viewport.Size.h;
-
                     view.Target = target;
+
                     view.Constants.EyePosition[ 0 ] = eyePose.Position.x;
                     view.Constants.EyePosition[ 1 ] = eyePose.Position.y;
                     view.Constants.EyePosition[ 2 ] = -eyePose.Position.z; // change handedness
                     view.Constants.EyePosition[ 3 ] = 1.0f;
 
-                    // Create rotation with x and y relative rotation axises flip
-                    XMVECTOR rotation = XMVectorSet( -eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w );
-                    // Upper left corner of the view frustum at z of 1. Note, z positive, left handed. 
-                    XMVECTOR rayScreenUpperLeft = XMVector3Rotate( XMVectorSet( -fov.LeftTan, fov.UpTan, 1.0f, 0.0f ), rotation );
-                    // Right direction scaled to width of the frustum at z of 1.
-                    XMVECTOR rayScreenRight = XMVector3Rotate( XMVectorSet( fov.LeftTan + fov.RightTan, 0.0f, 0.0f, 0.0f ), rotation );
-                    // Down direction scaled to height of the frustum at z of 1.
-                    XMVECTOR rayScreenDown = XMVector3Rotate( XMVectorSet( 0.0f, -( fov.DownTan + fov.UpTan ), 0.0f, 0.0f ), rotation ); // top to bottom screen
+                // Create rotation adjusted for handedness etc
+                XMVECTOR rotation = XMVectorSet( -eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w );
+                // Upper left corner of the view frustum at z of 1. Note, z positive, left handed. 
+                XMVECTOR rayScreenUpperLeft = XMVector3Rotate( XMVectorSet( -fov.LeftTan, fov.UpTan, 1.0f, 0.0f ), rotation );
+                // Right direction scaled to width of the frustum at z of 1.
+                XMVECTOR rayScreenRight = XMVector3Rotate( XMVectorSet( fov.LeftTan + fov.RightTan, 0.0f, 0.0f, 0.0f ), rotation );
+                // Down direction scaled to height of the frustum at z of 1.
+                XMVECTOR rayScreenDown = XMVector3Rotate( XMVectorSet( 0.0f, -( fov.DownTan + fov.UpTan ), 0.0f, 0.0f ), rotation ); // top to bottom screen
 
                     XMStoreFloat4( reinterpret_cast<XMFLOAT4*>( view.Constants.RayScreenUpperLeft ), XMVectorSetW( rayScreenUpperLeft, 0.0f ) );
                     XMStoreFloat4( reinterpret_cast<XMFLOAT4*>( view.Constants.RayScreenRight ), XMVectorSetW( rayScreenRight, 0.0f ) );

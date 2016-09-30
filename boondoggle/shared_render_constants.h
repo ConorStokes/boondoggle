@@ -9,7 +9,8 @@ struct PerFrameConstants
 {
     float Time;
     float DeltaTime;
-    float TransitionIn;
+    // Eventually we're going to add transitions for the effects.
+    float TransitionIn; 
     float TransitionOut;
 
     // Each frequency bin has max dbSPL of the bin for channel 0 and channel 1 (with a cut off noise floor of -60), 

@@ -77,23 +77,23 @@ float2 SceneDistance( float3 from )
 
     if ( from.x < 0 )
     {
-        lowFrequency = 1 - ( SoundFrequencyBuckets[ 0 ].x + SoundFrequencyBuckets[ 1 ].x + SoundFrequencyBuckets[ 2 ].x + SoundFrequencyBuckets[ 3 ].x ) * scale;
-        midLowFrequency = 1 - ( SoundFrequencyBuckets[ 4 ].x + SoundFrequencyBuckets[ 5 ].x + SoundFrequencyBuckets[ 6 ].x + SoundFrequencyBuckets[ 7 ].x ) * scale;
+        lowFrequency     = 1 - ( SoundFrequencyBuckets[ 0 ].x + SoundFrequencyBuckets[ 1 ].x + SoundFrequencyBuckets[ 2 ].x + SoundFrequencyBuckets[ 3 ].x ) * scale;
+        midLowFrequency  = 1 - ( SoundFrequencyBuckets[ 4 ].x + SoundFrequencyBuckets[ 5 ].x + SoundFrequencyBuckets[ 6 ].x + SoundFrequencyBuckets[ 7 ].x ) * scale;
         midHighFrequency = 1 - ( SoundFrequencyBuckets[ 8 ].x + SoundFrequencyBuckets[ 9 ].x + SoundFrequencyBuckets[ 10 ].x + SoundFrequencyBuckets[ 11 ].x ) * scale;
-        highFrequency = 1 - ( SoundFrequencyBuckets[ 12 ].x + SoundFrequencyBuckets[ 13 ].y + SoundFrequencyBuckets[ 14 ].x + SoundFrequencyBuckets[ 15 ].x ) * scale;
+        highFrequency    = 1 - ( SoundFrequencyBuckets[ 12 ].x + SoundFrequencyBuckets[ 13 ].y + SoundFrequencyBuckets[ 14 ].x + SoundFrequencyBuckets[ 15 ].x ) * scale;
     }
     else
     {
-        lowFrequency = 1 - ( SoundFrequencyBuckets[ 0 ].y + SoundFrequencyBuckets[ 1 ].y + SoundFrequencyBuckets[ 2 ].y + SoundFrequencyBuckets[ 3 ].y ) * scale;
-        midLowFrequency = 1 - ( SoundFrequencyBuckets[ 4 ].y + SoundFrequencyBuckets[ 5 ].y + SoundFrequencyBuckets[ 6 ].y + SoundFrequencyBuckets[ 7 ].y ) * scale;
+        lowFrequency     = 1 - ( SoundFrequencyBuckets[ 0 ].y + SoundFrequencyBuckets[ 1 ].y + SoundFrequencyBuckets[ 2 ].y + SoundFrequencyBuckets[ 3 ].y ) * scale;
+        midLowFrequency  = 1 - ( SoundFrequencyBuckets[ 4 ].y + SoundFrequencyBuckets[ 5 ].y + SoundFrequencyBuckets[ 6 ].y + SoundFrequencyBuckets[ 7 ].y ) * scale;
         midHighFrequency = 1 - ( SoundFrequencyBuckets[ 8 ].y + SoundFrequencyBuckets[ 9 ].y + SoundFrequencyBuckets[ 10 ].y + SoundFrequencyBuckets[ 11 ].y ) * scale;
-        highFrequency = 1 - ( SoundFrequencyBuckets[ 12 ].y + SoundFrequencyBuckets[ 13 ].y + SoundFrequencyBuckets[ 14 ].y + SoundFrequencyBuckets[ 15 ].y ) * scale;
+        highFrequency    = 1 - ( SoundFrequencyBuckets[ 12 ].y + SoundFrequencyBuckets[ 13 ].y + SoundFrequencyBuckets[ 14 ].y + SoundFrequencyBuckets[ 15 ].y ) * scale;
     }
 
-    float distortion = lowFrequency * lowFrequency * 0.8 * sin( 1.25 * from.x + Time ) * sin( 1.25 * from.y + Time * 0.9f ) * sin( 1.25 * from.z + Time * 1.1f ) +
-                        midLowFrequency * midLowFrequency * midLowFrequency * 0.4 * sin( 3.0 * from.x + Time * 1.5 ) * sin( 3.0 * from.y + Time * 1.3f ) * sin( 3.0 * from.z + -Time * 1.6f ) +
-                        midHighFrequency * midHighFrequency * midHighFrequency * midHighFrequency * 0.5 * sin( 5.7 * from.x + Time * 2.5 ) * sin( 5.7 * from.y + -Time * 2.3f ) * sin( 5.7 * from.z + Time * 2.6f ) +
-                        highFrequency * highFrequency * highFrequency * highFrequency * highFrequency * 0.7 * sin( 9.2 * from.x + -Time * 4.5 ) * sin( 9.2 * from.y + Time * 4.3f ) * sin( 9.2 * from.z + Time * 4.6f ) * ( from.x < 0 ? -1 : 1 );
+    float distortion = lowFrequency * lowFrequency * 0.8 * sin( 1.24 * from.x + Time ) * sin( 1.25 * from.y + Time * 0.9f ) * sin( 1.26 * from.z + Time * 1.1f ) +
+                       midLowFrequency * midLowFrequency * midLowFrequency * 0.4 * sin( 3.0 * from.x + Time * 1.5 ) * sin( 3.1 * from.y + Time * 1.3f ) * sin( 3.2 * from.z + -Time * 1.6f ) +
+                       pow( midHighFrequency, 4.0 ) * 0.5 * sin( 5.71 * from.x + Time * 2.5 ) * sin( 5.72 * from.y + -Time * 2.3f ) * sin( 5.73 * from.z + Time * 2.6f ) +
+                       pow( highFrequency, 5.0 ) * 0.7 * sin( 9.21 * from.x + -Time * 4.5 ) * sin( 9.22 * from.y + Time * 4.3f ) * sin( 9.23 * from.z + Time * 4.6f ) * ( from.x < 0 ? -1 : 1 );
     
     float normalizedSoundCubed = normalizedSound * normalizedSound * normalizedSound;
 
@@ -116,9 +116,8 @@ float4 main(float4 position : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_Tar
 
     float t = 3.7f;
 
-    float2 actualDistance = float2( 50, 0 );
-    float3 pbr           = float3( 0, 0, 0 );
-    float3 materialColor = float3( 0, 0, 0 );
+    float3 pbr            = float3( 0, 0, 0 );
+    float3 materialColor  = float3( 0, 0, 0 );
 
     float3 rightRayDir = normalize( RayScreenUpperLeft.xyz + ( texCoord.x + InverseResolution.x ) * RayScreenRight.xyz + texCoord.y * RayScreenDown.xyz );
     float3 downRayDir = normalize( RayScreenUpperLeft.xyz + texCoord.x * RayScreenRight.xyz + ( texCoord.y + InverseResolution.y ) * RayScreenDown.xyz );
@@ -130,8 +129,7 @@ float4 main(float4 position : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_Tar
     float2 distance = float2(0,0);
 
     float3 glow = { 0, 0, 0 };
-    
- //   float iterations = 0;
+
     float previousDistance = 3.7;
 
     for ( ;; )
@@ -141,10 +139,8 @@ float4 main(float4 position : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_Tar
         distance = SceneDistance( from );
 
         glow += previousDistance * Ambient[ ( uint )distance.y ] / ( 1 + distance.x * distance.x );
-
-//        iterations += 1;
-
-        if (distance.x / t < pixelRadius || t > 150.0f || abs( from.y ) > 13.5 ) break;
+        
+        if ( distance.x / t < pixelRadius || t > 150.0f || abs( from.y ) > 13.5 ) break;
 
         t += distance.x;
     }
@@ -152,8 +148,6 @@ float4 main(float4 position : SV_POSITION, float2 texCoord : TEXCOORD0) : SV_Tar
     float3 finalPosition = movedEyePosition.xyz + rayDir * t;
 
     glow *= 1.5 / 150.0;
-   // glow /= iterations;
-  //  glow *= 2.5 * ( t > 150.0f || abs( finalPosition ) > 13.5 ? 150 : t ) / 150;
 
     material = distance.y;
     

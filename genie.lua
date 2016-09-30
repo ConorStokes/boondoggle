@@ -2,8 +2,9 @@ solution "boondoggle"
 	configurations { "Debug", "Release" }
 	platforms      { "x32", "x64" }
 	includedirs    { "include" }
-	flags          { "NoPCH", "NoRTTI" }
+	flags          { "NoPCH", "NoRTTI", "Unicode", "NativeWChar" }
 	location       ( _ACTION )
+	defines        { "UNICODE", "_UNICODE" }
 	configuration { "gmake" }
 		buildoptions   { "-std=c++11", "-msse4.1" }
 	
@@ -50,7 +51,7 @@ solution "boondoggle"
 		configuration { "x32", "Release" }
 			targetdir ( path.join( "bin", "32", "release" ) )
 
-	project "compiler"
+	project "boondoggle_compiler"
 		language "C++"
 		kind "ConsoleApp"
 		files { "compiler/**.cpp", 

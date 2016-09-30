@@ -1,0 +1,57 @@
+{
+  "shaders": [
+    {
+      "id": "wobbly_spheres_twisted_bars_ps",
+      "file": "wobbly_spheres_twisted_bars_ps.hlsl"
+    },
+    {
+      "id": "wave_capsules_ps",
+      "file":  "wave_capsules.hlsl"
+    },
+    {
+      "id": "mad_bars_ps",
+      "file":  "mad_bars.hlsl"
+    }
+  ],
+  "samplers": [
+    {
+      "id": "default",
+      "filter": "anisotropic",
+      "max_anisotropy": 8
+    },
+    {
+      "id": "sound_sampler",
+      "filter": "bilinear",
+      "address_u": "clamp"
+    }
+  ],
+  "static_textures": [
+    { "id":  "ground", "file": "concrete_texture.dds"}
+  ],
+  "procedural_textures": [
+
+  ],
+  "effects": [
+    {
+      "id": "wobbly_spheres_twisted_bars",
+      "shader": "wobbly_spheres_twisted_bars_ps",
+      "samplers": [ "default" ],
+      "textures": [ "ground" ]
+    },
+    {
+      "id": "wave_capsules",
+      "shader": "wave_capsules_ps",
+      "samplers": [ "sound_sampler" ],
+      "textures":  [ "sound" ]
+    },
+    {
+      "id": "mad_bars",
+      "shader": "mad_bars_ps"
+    },
+  ],
+  "vertex_quad_shader": {
+
+    "file": "screen_aligned_quad_vs.hlsl"
+
+  }
+}

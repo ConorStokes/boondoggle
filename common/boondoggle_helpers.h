@@ -3,8 +3,14 @@
 
 #pragma once
 
+#if defined( _MSC_VER )
+#define BEH_FORCE_INLINE __forceinline
+#else
+#define BEH_FORCE_INLINE inline
+#endif
+
 template < typename COMType >
-void COMRelease( COMType*& toRelease )
+BEH_FORCE_INLINE void COMRelease( COMType*& toRelease )
 {
     if ( toRelease != nullptr )
     {
@@ -13,33 +19,76 @@ void COMRelease( COMType*& toRelease )
     }
 }
 
-// Simple RAII type for auto releasing COM pointers.
+// Simple smart pointer type for auto releasing COM pointers.
+// While I wouldn't use a reference counted smart pointer usually,
+// for COM you are already paying for reference counting and quite
+// often for D3D you end up with an array of such pointers.
 template <typename IntrusiveType>
 struct COMAutoPtr
 {
     IntrusiveType* raw;
 
-    COMAutoPtr( IntrusiveType* value = nullptr )
+    BEH_FORCE_INLINE COMAutoPtr( IntrusiveType* value = nullptr )
         : raw( value ) {}
 
-    void Release()
+    BEH_FORCE_INLINE void Release()
     {
         COMRelease( raw );
     }
 
-    IntrusiveType* operator->() { return raw; }
+    BEH_FORCE_INLINE IntrusiveType* operator->() { return raw; }
 
-    const IntrusiveType* operator->() const { return raw; }
+    BEH_FORCE_INLINE const IntrusiveType* operator->() const { return raw; }
 
-    IntrusiveType& operator*() { return *raw }
+    BEH_FORCE_INLINE IntrusiveType& operator*() { return *raw }
 
-    const IntrusiveType& operator*() const { return *raw }
+    BEH_FORCE_INLINE const IntrusiveType& operator*() const { return *raw }
     
-    COMAutoPtr( const COMAutoPtr< IntrusiveType >& ) = delete;
+    BEH_FORCE_INLINE COMAutoPtr( const COMAutoPtr< IntrusiveType >& from )
+    {
+        raw = from.raw;
 
-    COMAutoPtr< IntrusiveType >& operator=( const COMAutoPtr< IntrusiveType >& ) = delete;
+        if ( raw != nullptr )
+        {
+            raw->AddRef();
+        }
+    }
 
-    ~COMAutoPtr()
+    BEH_FORCE_INLINE COMAutoPtr< IntrusiveType >& operator=( const COMAutoPtr< IntrusiveType >& from )
+    {
+        if ( from.raw != nullptr )
+        {
+            from.raw->AddRef();
+        }
+
+        if ( raw != nullptr )
+        {
+            raw->Release();
+        }
+
+        raw = from.raw;
+
+        return *this;
+    }
+
+    BEH_FORCE_INLINE COMAutoPtr< IntrusiveType >& operator=( IntrusiveType* from )
+    {
+        if ( from != nullptr )
+        {
+            from->AddRef();
+        }
+
+        if ( raw != nullptr )
+        {
+            raw->Release();
+        }
+
+        raw = from;
+
+        return *this;
+    }
+
+    BEH_FORCE_INLINE ~COMAutoPtr()
     {
         Release();
     }

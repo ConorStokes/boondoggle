@@ -17,14 +17,14 @@ bool OculusSwapChain::Create( ::ovrSession session, ID3D11Device* device, uint32
     swapChainDesc.MiscFlags   = ::ovrTextureMisc_None;
     swapChainDesc.StaticImage = ovrFalse;
 
-    ::ovrResult swapChainResult = ::ovr_CreateTextureSwapChainDX( session, device, &swapChainDesc, &Chain_ );
+    ::ovrResult swapChainResult = ::ovr_CreateTextureSwapChainDX( session, device, &swapChainDesc, &Chain );
 
     if ( OVR_FAILURE( swapChainResult ) )
     {
         return false;
     }
 
-    ::ovrResult chainLengthResult = ovr_GetTextureSwapChainLength( session, Chain_, &TextureCount_ );
+    ::ovrResult chainLengthResult = ovr_GetTextureSwapChainLength( session, Chain, &TextureCount_ );
 
     if ( OVR_FAILURE( chainLengthResult ) )
     {
@@ -37,17 +37,46 @@ bool OculusSwapChain::Create( ::ovrSession session, ID3D11Device* device, uint32
     {
         COMAutoPtr< ID3D11Texture2D > texture;
 
-        ::ovrResult textureResult = ::ovr_GetTextureSwapChainBufferDX( session, Chain_, textureIndex, IID_PPV_ARGS( &texture.raw ) );
+        ::ovrResult textureResult = ::ovr_GetTextureSwapChainBufferDX( session, Chain, textureIndex, IID_PPV_ARGS( &texture.raw ) );
 
         if ( OVR_FAILURE( textureResult ) )
         {
             return false;
         }
 
-        device->CreateRenderTargetView( texture.raw, nullptr, &RenderTargets_[ textureIndex ].raw );
+        D3D11_RENDER_TARGET_VIEW_DESC targetDesc = {};
+
+        targetDesc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+        targetDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+        HRESULT targetResult = device->CreateRenderTargetView( texture.raw, &targetDesc, &RenderTargets_[ textureIndex ].raw );
+
+        if ( targetResult != ERROR_SUCCESS )
+        {
+            return false;
+        }
     }
 
     return true;
+}
+
+ID3D11RenderTargetView* OculusSwapChain::CurrentTarget()
+{
+    ID3D11RenderTargetView* result = nullptr;
+    int                     index  = 0;
+
+    if ( Chain != nullptr && RenderTargets_ != nullptr )
+    {
+        ::ovrResult currentIndexResult =
+            ::ovr_GetTextureSwapChainCurrentIndex( Session_, Chain, &index );
+
+        if ( OVR_SUCCESS( currentIndexResult ) )
+        {
+            result = RenderTargets_[ index ].raw;
+        }
+    }
+
+    return result;
 }
 
 OculusSwapChain::~OculusSwapChain()
@@ -60,9 +89,9 @@ OculusSwapChain::~OculusSwapChain()
 
     TextureCount_ = 0;
 
-    if ( Chain_ != nullptr )
+    if ( Chain != nullptr )
     {
-        ::ovr_DestroyTextureSwapChain( Session_, Chain_ );
-        Chain_ = nullptr;
+        ::ovr_DestroyTextureSwapChain( Session_, Chain );
+        Chain = nullptr;
     }
 }

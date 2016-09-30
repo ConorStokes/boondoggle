@@ -1,6 +1,0 @@
-#ifndef BOONDOGGLE_AUDIO_CAPTURE_H__
-#define BOONDOGGLE_AUDIO_CAPTURE_H__
-
-#pragma once
-
-#endif // -- BOONDOGGLE_AUDIO_CAPTURE_H__

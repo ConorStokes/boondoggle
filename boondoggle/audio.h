@@ -19,6 +19,7 @@ enum class AudioUpdateResult
     AUDIO_ERROR = 2
 };
 
+// Captures audio from the default device.
 class AudioCapture
 {
 public:
@@ -27,15 +28,20 @@ public:
 
     ~AudioCapture();
 
+    // Initialize audio capture with a required "base frequency" that is the 
+    // minimum frequency we need to capture in an audio update.
     bool Initialize( uint32_t requiredFrequency );
 
-    // Pull audio 
+    // We've filled enough buffer for another period.
     AudioUpdateResult PullAudio();
 
+    // The sample rate of the audio.
     uint32_t SampleRate() const { return SampleRate_; }
 
+    // Number of samples in an individual period.
     size_t SamplesPerPeriod() const { return BufferSize_ >> 1; }
 
+    // Get left=0 or right=1 channel (always stereo)
     const float* GetChannel( uint32_t channel ) const 
     {
         uint64_t innerCursor    = Cursor_ & (BufferSize_ - 1);
@@ -63,6 +69,8 @@ private:
 
 };
 
+// Audio processing - uses AudioCapture to capture audio, then runs it through
+// our processing pipeline to get values for visualization.
 class AudioProcessing
 {
 public:
@@ -71,12 +79,19 @@ public:
 
     ~AudioProcessing();
 
-    size_t SamplesPerPeriod() const { return Capture_.SamplesPerPeriod(); }
-
-    const float* AudioTextureData() const { return AudioTextureData_; }
-
+    // Initialize this - and populate the appropriate visualization constants.
     bool Initialize( PerFrameConstants& toUpdate );
 
+    // Number of samples in a period for processing.
+    size_t SamplesPerPeriod() const { return Capture_.SamplesPerPeriod(); }
+
+    // The data to be put in an audio texture
+    // left and right channels in [0] and [1], left and right FFT amplitudes in [2] and [3].
+    // Note, we don't care about phases really here.
+    const float* AudioTextureData() const { return AudioTextureData_; }
+
+    // Attempt to update the per-frame constants from the audio processing.
+    // Will indicate if any processing occured of if there was an error in the return value.
     AudioUpdateResult Update( PerFrameConstants& toUpdate );
 
 private:

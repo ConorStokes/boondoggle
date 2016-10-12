@@ -105,10 +105,10 @@ float2 SceneDistance( float3 from, bool testSpheres, bool withATwist )
         float2 midHighFrequency = 1 - ( SoundFrequencyBuckets[ 8 ].xy + SoundFrequencyBuckets[ 9 ].xy + SoundFrequencyBuckets[ 10 ].xy + SoundFrequencyBuckets[ 11 ].xy ) * scale;
         float2 highFrequency = 1 - ( SoundFrequencyBuckets[ 12 ].xy + SoundFrequencyBuckets[ 13 ].xy + SoundFrequencyBuckets[ 14 ].xy + SoundFrequencyBuckets[ 15 ].xy ) * scale;
 
-        float2 distortion = lowFrequency * lowFrequency * 0.8 * sin( 1.25 * from.x + Time ) * sin( 1.25 * from.y + Time * 0.9f ) * sin( 1.25 * from.z + Time * 1.1f ) +
-            midLowFrequency * midLowFrequency * midLowFrequency * 0.4 * sin( 3.0 * from.x + Time * 1.5 ) * sin( 3.0 * from.y + Time * 1.3f ) * sin( 3.0 * from.z + -Time * 1.6f ) +
-            midHighFrequency * midHighFrequency * midHighFrequency * midHighFrequency * 0.5 * sin( 5.7 * from.x + Time * 2.5 ) * sin( 5.7 * from.y + -Time * 2.3f ) * sin( 5.7 * from.z + Time * 2.6f ) +
-            highFrequency * highFrequency * highFrequency * highFrequency * highFrequency * 0.7 * sin( 9.2 * from.x + -Time * 4.5 ) * sin( 9.2 * from.y + Time * 4.3f ) * sin( 9.2 * from.z + Time * 4.6f ) * float2( -1, 1 );
+        float2 distortion = lowFrequency * lowFrequency * 0.8 * sin( 1.24 * from.x + Time ) * sin( 1.25 * from.y + Time * 0.9f ) * sin( 1.26 * from.z + Time * 1.1f ) +
+                            midLowFrequency * midLowFrequency * midLowFrequency * 0.4 * sin( 3.0 * from.x + Time * 1.5 ) * sin( 3.1 * from.y + Time * 1.3f ) * sin( 3.2 * from.z + -Time * 1.6f ) +
+                            pow( midHighFrequency, 4.0 ) * 0.5 * sin( 5.71 * from.x + Time * 2.5 ) * sin( 5.72 * from.y + -Time * 2.3f ) * sin( 5.73 * from.z + Time * 2.6f ) +
+                            pow( highFrequency, 5.0 ) * 0.7 * sin( 9.21 * from.x + -Time * 4.5 ) * sin( 9.22 * from.y + Time * 4.3f ) * sin( 9.23 * from.z + Time * 4.6f ) * float2( -1, 1 );
 
         UnionSDF( result, float2( SphereSDF( float3( 3, -5, 8 ), 2, from ) + distortion.y, 1 ) );
 

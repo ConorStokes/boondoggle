@@ -546,7 +546,6 @@ namespace
         textureDesc.Format         = DXGI_FORMAT::DXGI_FORMAT_R32G32B32A32_FLOAT;
         textureDesc.BindFlags      = D3D11_BIND_FLAG::D3D11_BIND_SHADER_RESOURCE;
         textureDesc.Usage          = D3D11_USAGE::D3D11_USAGE_DYNAMIC;
-//        textureDesc.MiscFlags      = D3D11_RESOURCE_MISC_FLAG::D3D11_RESOURCE_MISC_GENERATE_MIPS;
         textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_FLAG::D3D11_CPU_ACCESS_WRITE;
 
         HRESULT createTextureResult = Device->CreateTexture1D( &textureDesc, nullptr, &SoundTexture );
@@ -600,7 +599,6 @@ bool DisplayOculusVR( const wchar_t* packagePath )
 
     if ( OVR_FAILURE( oculusResult ) )
     {
-        //::MessageBoxW( nullptr, L"Can't initialize oculus SDK", L"Oculus Error", MB_OK | MB_ICONERROR );
         return false;
     }
 
@@ -614,7 +612,6 @@ bool DisplayOculusVR( const wchar_t* packagePath )
 
         if ( OVR_FAILURE( result ) )
         {
-            //resources.ShowError( L"Failed to find hmd/create oculus session", L"Oculus Error" );
             return false;
         }
 
@@ -659,7 +656,6 @@ bool DisplayOculusVR( const wchar_t* packagePath )
 
             viewports[ eyeIndex ].Pos.x = 0;
             viewports[ eyeIndex ].Pos.y = 0;
-//            viewports[ eyeIndex ].Size  = idealSize;
             viewports[ eyeIndex ].Size.w = idealSize.w;
             viewports[ eyeIndex ].Size.h = idealSize.h;
         }
@@ -736,6 +732,7 @@ bool DisplayOculusVR( const wchar_t* packagePath )
 
             ::ovr_GetInputState( oculusSession.Session, ::ovrControllerType::ovrControllerType_Active, &inputState );
 
+            // This allows us to use the left keyboard button, oculus remote, xbox controller (and maybe touch) to go to the previous effect.
             if ( resources.LeftDown != previousLeftDown || ( ( inputState.Buttons & ~previousButtons ) & ( ::ovrButton_Left | ::ovrButton_Back ) ) > 0 )
             {
                 --effect;
@@ -746,6 +743,7 @@ bool DisplayOculusVR( const wchar_t* packagePath )
                 }
             }
 
+            // This allows us to use the right keyboard button, oculus remote, xbox controller (and maybe touch) to go to the next effect.
             if ( resources.RightDown != previousRightDown || ( ( inputState.Buttons & ~previousButtons ) & ( ::ovrButton_Right | ::ovrButton_A ) ) > 0 )
             {
                 ++effect;
@@ -776,6 +774,7 @@ bool DisplayOculusVR( const wchar_t* packagePath )
             }
             else if ( audioUpdateResult == AudioUpdateResult::UPDATED )
             {
+                // Sound updated, so copy it as a texture.
                 D3D11_MAPPED_SUBRESOURCE subResource;
 
                 HRESULT mappingResult =
@@ -788,6 +787,7 @@ bool DisplayOculusVR( const wchar_t* packagePath )
                 hasFirstAudioUpdate = true;
             }
 
+            // Until we actually have an audio update, wait a little.
             if ( !hasFirstAudioUpdate )
             {
                 ::Sleep( 1 );
@@ -837,14 +837,14 @@ bool DisplayOculusVR( const wchar_t* packagePath )
                     view.Constants.EyePosition[ 2 ] = -eyePose.Position.z; // change handedness
                     view.Constants.EyePosition[ 3 ] = 1.0f;
 
-                // Create rotation adjusted for handedness etc
-                XMVECTOR rotation = XMVectorSet( -eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w );
-                // Upper left corner of the view frustum at z of 1. Note, z positive, left handed. 
-                XMVECTOR rayScreenUpperLeft = XMVector3Rotate( XMVectorSet( -fov.LeftTan, fov.UpTan, 1.0f, 0.0f ), rotation );
-                // Right direction scaled to width of the frustum at z of 1.
-                XMVECTOR rayScreenRight = XMVector3Rotate( XMVectorSet( fov.LeftTan + fov.RightTan, 0.0f, 0.0f, 0.0f ), rotation );
-                // Down direction scaled to height of the frustum at z of 1.
-                XMVECTOR rayScreenDown = XMVector3Rotate( XMVectorSet( 0.0f, -( fov.DownTan + fov.UpTan ), 0.0f, 0.0f ), rotation ); // top to bottom screen
+                    // Create rotation adjusted for handedness etc
+                    XMVECTOR rotation = XMVectorSet( -eyePose.Orientation.x, -eyePose.Orientation.y, eyePose.Orientation.z, eyePose.Orientation.w );
+                    // Upper left corner of the view frustum at z of 1. Note, z positive, left handed. 
+                    XMVECTOR rayScreenUpperLeft = XMVector3Rotate( XMVectorSet( -fov.LeftTan, fov.UpTan, 1.0f, 0.0f ), rotation );
+                    // Right direction scaled to width of the frustum at z of 1.
+                    XMVECTOR rayScreenRight = XMVector3Rotate( XMVectorSet( fov.LeftTan + fov.RightTan, 0.0f, 0.0f, 0.0f ), rotation );
+                    // Down direction scaled to height of the frustum at z of 1.
+                    XMVECTOR rayScreenDown = XMVector3Rotate( XMVectorSet( 0.0f, -( fov.DownTan + fov.UpTan ), 0.0f, 0.0f ), rotation ); // top to bottom screen
 
                     XMStoreFloat4( reinterpret_cast<XMFLOAT4*>( view.Constants.RayScreenUpperLeft ), XMVectorSetW( rayScreenUpperLeft, 0.0f ) );
                     XMStoreFloat4( reinterpret_cast<XMFLOAT4*>( view.Constants.RayScreenRight ), XMVectorSetW( rayScreenRight, 0.0f ) );

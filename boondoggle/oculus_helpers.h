@@ -8,6 +8,8 @@
 
 #pragma once
 
+// Creation and auto-destruction for the swap chain, also implements basic functions to get the 
+// right render target view from the swap chain.
 class OculusSwapChain
 {
 public:
@@ -18,10 +20,13 @@ public:
         TextureCount_( 0 ),
         RenderTargets_( nullptr ) {}
 
+    // Create the swap chain
     bool Create( ::ovrSession session, ID3D11Device* device, uint32_t width, uint32_t height );
         
+    // Get the current render target on a created swap chain.
     ID3D11RenderTargetView* CurrentTarget();
 
+    // Commit the current texture in the swap chain.
     void Commit() { ::ovr_CommitTextureSwapChain( Session_, Chain ); }
 
     ~OculusSwapChain();
@@ -40,6 +45,7 @@ private:
 
 };
 
+// Auto-destruction for the oculus session.
 struct OculusSession
 {
     ::ovrSession Session;
@@ -59,6 +65,7 @@ struct OculusSession
     }
 };
 
+// Auto destruction for the mirror texture.
 struct OculusMirrorTexture
 {
     ::ovrMirrorTexture Texture;
@@ -79,6 +86,7 @@ struct OculusMirrorTexture
     }
 };
 
+// Auto shutdown for the oculus sdk initialization.
 struct OculusAutoShutdown
 {
     OculusAutoShutdown() {}

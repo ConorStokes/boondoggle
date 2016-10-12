@@ -9,6 +9,7 @@ struct PerFrameConstants
 {
     float Time;
     float DeltaTime;
+
     // Eventually we're going to add transitions for the effects.
     float TransitionIn; 
     float TransitionOut;

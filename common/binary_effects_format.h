@@ -25,15 +25,14 @@ struct Relative
                            0 : 
                            static_cast< AddressType >( reinterpret_cast< const uint8_t* >( actualPointer ) - reinterpret_cast< const uint8_t* >( &RelativeAddress ) ) ) {}
 
-    /*
-     * We remove the copy constructor and assignment operator here, which we could make work
-     * using a 64bit relative address.
-     */
+    
+    // We remove the copy constructor and assignment operator here as relative addresses are only valid locally.     
 
     Relative( const Relative< PointedType >& from ) = delete;
 
     Relative& operator=( const Relative< PointedType >& from ) = delete;
 
+    // Allow us to work from a pointer.
     BEF_FORCE_INLINE Relative< PointedType >& operator=( const PointedType* actualPointer )
     {
         RelativeAddress = 
@@ -44,19 +43,23 @@ struct Relative
         return *this;
     }
 
+    // Raw pointer value calculated from relative address.
     BEF_FORCE_INLINE PointedType* Raw()
     {
         return RelativeAddress == 0 ?
             nullptr :
-            reinterpret_cast<PointedType*>( reinterpret_cast< uint8_t*>( &RelativeAddress ) + RelativeAddress );
+            reinterpret_cast< PointedType* >( reinterpret_cast< uint8_t*>( &RelativeAddress ) + RelativeAddress );
     }
 
+    // Raw pointer calculated from relative address.
     BEF_FORCE_INLINE const PointedType* Raw() const
     {
         return RelativeAddress == 0 ?
             nullptr :
-            reinterpret_cast<const PointedType*>( reinterpret_cast<const uint8_t*>( &RelativeAddress ) + RelativeAddress );
+            reinterpret_cast< const PointedType* >( reinterpret_cast<const uint8_t*>( &RelativeAddress ) + RelativeAddress );
     }
+
+    // Pointer operators for convenience.
 
     BEF_FORCE_INLINE operator const PointedType*( ) const { return Raw(); }
 
@@ -74,16 +77,19 @@ struct Relative
 
     BEF_FORCE_INLINE const PointedType& operator[]( size_t index ) const { return *( Raw() + index ); }
 
+    // Used to check this is in a valid range.
     BEF_FORCE_INLINE bool IsValid( const uint8_t* endBuffer, uint32_t count = 1 ) const
     {
         return RelativeAddress == 0 || reinterpret_cast<const uint8_t*>( Raw() + count ) <= endBuffer;
     }
 
+    // Is this in a valid range and not null.
     BEF_FORCE_INLINE bool IsValidNotNull( const uint8_t* endBuffer, uint32_t count = 1 ) const
     {
         return RelativeAddress != 0 && reinterpret_cast<const uint8_t*>( Raw() + count ) <= endBuffer;
     }
 
+    // Is this null?
     BEF_FORCE_INLINE bool IsNull() const { return RelativeAddress == 0; }
 };
 
@@ -123,11 +129,14 @@ enum class ProceduralFormats : uint32_t
     RGBA32F          = 4
 };
 
+// Used for raw binary resources. 
+// We use a separate pointer instead of post-fixing the data so we can have a nice array of blobs.
 struct ResourceBlob
 {
     uint32_t                           ResourceSize;
     Relative< uint8_t >                Data;
 };
+
 
 struct ProceduralTexture
 {
@@ -135,7 +144,6 @@ struct ProceduralTexture
     ProceduralFormats                  Format;
     uint32_t                           Width;
     uint32_t                           Height;
-//    uint32_t                           Depth;
     uint32_t                           SourceTextureCount;
     Relative< uint32_t >               SourceTextures;
     uint32_t                           SourceSamplerCount;

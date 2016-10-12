@@ -10,6 +10,7 @@
 
 struct BoondogglePackageHeader;
 
+// The per frame parameters for rendering effects, including the constants.
 struct PerFrameParameters
 {
     ID3D11Buffer*             ConstantBuffer;
@@ -20,6 +21,7 @@ struct PerFrameParameters
     ID3D11ShaderResourceView* SoundTextureSRV;
 };
 
+// The per view parameters for rendering effects, including the constants.
 struct PerViewParameters
 {
     uint32_t                Left;
@@ -48,14 +50,18 @@ public:
     {
     }
 
+    // Create the resources for a particular package.
     bool CreateResources( ID3D11Device* device, ID3D11DeviceContext* context, HWND windowHandle, size_t textureMaxSize, const wchar_t* packageName );
 
     ~BoondoggleEffectsPackage();
 
+    // Render any initial procedural textures.
     bool RenderInitialTextures( const PerFrameParameters& frameParameters );
 
+    // Render a frame to each of the views.
     bool Render( const PerFrameParameters& frameParameters, /* array */ const PerViewParameters* views, uint32_t viewCount );
 
+    // Number of effects in this package.
     uint32_t EffectCount() const;
 
     BoondoggleEffectsPackage( const BoondoggleEffectsPackage& ) = delete;

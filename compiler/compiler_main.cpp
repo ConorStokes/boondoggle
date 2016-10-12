@@ -18,13 +18,13 @@ namespace
         ConvertedWideString( const char* input )
             : Value( nullptr )
         {
-            int widePathBufferSize = MultiByteToWideChar( CP_UTF8, 0, input, -1, NULL, 0 );
+            int widePathBufferSize = ::MultiByteToWideChar( CP_UTF8, 0, input, -1, NULL, 0 );
 
             Value = reinterpret_cast<wchar_t*>( malloc( sizeof( WCHAR ) * widePathBufferSize ) );
 
-            if ( MultiByteToWideChar( CP_UTF8, 0, input, -1, Value, widePathBufferSize ) <= 0 )
+            if ( ::MultiByteToWideChar( CP_UTF8, 0, input, -1, Value, widePathBufferSize ) <= 0 )
             {
-                free( Value );
+                ::free( Value );
                 Value = nullptr;
             }
         }
@@ -68,6 +68,7 @@ namespace
             return ::strcmp( left, right ) == 0;
         }
     };
+
 
     struct MemoryMappedReadFile
     {
@@ -121,6 +122,8 @@ namespace
         }
     };
 
+
+    // Auto-free for JSON values.
     struct FreeJsonValue
     {
         json_value_s* Value;
@@ -137,6 +140,8 @@ namespace
         }
     };
 
+
+    // Parse a texture address mode text string and return the appropriate enum value.
     TextureAddressMode ParseAddressMode( const char* addressModeString )
     {
         TextureAddressMode result = TextureAddressMode::WRAP;
@@ -160,6 +165,7 @@ namespace
         return result;
     }
 
+    // Parse a filter mode text string and return an appropriate enum value.
     TextureFilterMode ParseFilterMode( const char* filterModeString )
     {
         TextureFilterMode result = TextureFilterMode::TRILINEAR;
@@ -184,6 +190,7 @@ namespace
     }
 
 
+    // Get a string element value with a particular name from a JSON object, returning default value if it can't be found.
     const char* GetString( const json_object_s* object, const char* name, const char* defaultValue = nullptr )
     {
         for ( const json_object_element_s* element = object->start; element != nullptr; element = element->next )
@@ -200,6 +207,8 @@ namespace
         return defaultValue;
     }
 
+    
+    // Get a boolean element with a particular name from a json object, with a default value if it can't be found.
     bool GetBool( const json_object_s* object, const char* name, bool defaultValue )
     {
         for ( const json_object_element_s* element = object->start; element != nullptr; element = element->next )
@@ -215,6 +224,8 @@ namespace
         return defaultValue;
     }
 
+
+    // Try and get a boolean element with a particular name from a json object, returning true if can be extracted and false if it can't.
     bool TryGetNumber( const json_object_s* object, const char* name, double* numberResult )
     {
         for ( const json_object_element_s* element = object->start; element != nullptr; element = element->next )
@@ -232,6 +243,8 @@ namespace
         return false;
     }
 
+
+    // Get a child JSON object from a JSON object given an element name. 
     const json_object_s* GetChildObject( const json_object_s* object, const char* name )
     {
         for ( const json_object_element_s* element = object->start; element != nullptr; element = element->next )
@@ -246,6 +259,8 @@ namespace
         return nullptr;
     }
 
+
+    // Get a child array from a JSON object given an element name.
     const json_array_s* GetChildArray( const json_object_s* object, const char* name )
     {
         for ( const json_object_element_s* element = object->start; element != nullptr; element = element->next )
@@ -260,6 +275,10 @@ namespace
         return nullptr;
     }
 
+
+    // Allocator that allocates a big hunk of address space
+    // and progressively commits it as we allocate it.
+    // Gives us a single chunk of memory to write to a file. 
     struct OutputAllocator
     {
         static const size_t AllocationSize  = 1024 * 1024 * 1024;
@@ -276,6 +295,7 @@ namespace
         {
         }
 
+        // Reserve memory and perform initial allocation.
         bool Initialize()
         {
             Allocation = ::VirtualAlloc( nullptr, AllocationSize, MEM_RESERVE, PAGE_READWRITE );
@@ -298,6 +318,7 @@ namespace
             return true;
         }
 
+        // Free it all.
         ~OutputAllocator()
         {
             if ( ::VirtualFree( Allocation, 0, MEM_RELEASE ) == FALSE )
@@ -306,6 +327,7 @@ namespace
             }
         }
 
+        // Allocate a block of a particular size with a particular alignment.
         void* Allocate( size_t size, size_t alignment )
         {
             size_t paddedBegin  = ( HighWatermark + alignment - 1 ) & ~( alignment - 1 );
@@ -339,6 +361,7 @@ namespace
             return reinterpret_cast<uint8_t*>( Allocation ) + paddedBegin;
         }
 
+        // Equivalent to new operator with default constructor.
         template < typename AllocationType >
         AllocationType* Allocate( size_t count = 1 )
         {
@@ -358,6 +381,7 @@ namespace
             return result;
         }
 
+        // Reset the allocation back to zero.
         void Reset()
         {
             HighWatermark = 0;
@@ -365,6 +389,7 @@ namespace
     };
 }
 
+// ID map hash table.
 typedef std::unordered_map< const char*, uint32_t, StringHash, EqualsString > StringIdMap;
 
 int wmain( int argc, const wchar_t** argv )

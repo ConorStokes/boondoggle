@@ -14,12 +14,13 @@ namespace
         float InverseResolution[ 2 ];
     };
     
+    // Functions for copying updates of different constants to a buffer.
+
     void UpdatePerRender( const PerRenderConstants& constants, uint8_t* buffer )
     {
         ::memcpy( buffer + sizeof( PerFrameConstants ), &constants, sizeof( PerRenderConstants ) );
     }
-
-
+    
     void UpdatePerFrame( const PerFrameConstants& constants, uint8_t* buffer )
     {
         ::memcpy( buffer, &constants, sizeof( PerFrameConstants ) );
@@ -31,7 +32,7 @@ namespace
         ::memcpy( buffer + sizeof( PerFrameConstants ) + sizeof( PerRenderConstants ), &constants, sizeof( PerViewConstants ) );
     }
 
-
+    // Translation for texture address modes.
     D3D11_TEXTURE_ADDRESS_MODE ToAddressMode( TextureAddressMode mode )
     {
         switch ( mode )
@@ -244,11 +245,7 @@ bool BoondoggleEffectsPackage::Render( const PerFrameParameters& frameParameters
     }
 
     Context_->PSSetShader( PixelShaders_[ effect.ShaderId ].raw, nullptr, 0 );
-
-    //Context_->PSSetShaderResources( effect.SourceTextureCount,
-    //                                D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - effect.SourceTextureCount,
-    //                                nullptr );
-
+    
     for ( uint32_t viewIndex = 0; viewIndex < viewCount; ++viewIndex )
     {
         const PerViewParameters& viewParameters     = views[ viewIndex ];
@@ -405,8 +402,6 @@ bool BoondoggleEffectsPackage::CreateResources( ID3D11Device* device, ID3D11Devi
         ::MessageBoxW( windowHandle, L"Couldn't create depth stencil state", L"Package Load Error", MB_OK | MB_ICONERROR );
         return false;
     }
-
- //   D3D11_
 
     ProceduralTargets_ = new COMAutoPtr< ID3D11RenderTargetView >[ Package_->ProceduralTextureCount ];
 

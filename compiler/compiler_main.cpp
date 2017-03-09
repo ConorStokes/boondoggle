@@ -342,7 +342,7 @@ namespace
             if ( newWaterMark > Committed )
             {
                 size_t newCommitted = ( Committed + ( newWaterMark - Committed ) + CommitBlockSize - 1 ) & ~( CommitBlockSize - 1 );
-                size_t extraCommit  = newCommitted - newCommitted;
+                size_t extraCommit  = newCommitted - Committed;
 
                 void* committedAllocation = 
                     ::VirtualAlloc( static_cast<uint8_t*>( Allocation ) + Committed, extraCommit, MEM_COMMIT, PAGE_READWRITE );

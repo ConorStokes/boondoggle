@@ -1,7 +1,7 @@
 # Boondoggle!
 A VR music visualizer based around shadertoy style ray marching.
 
-Here's a [blog post](https://conorstokes.github.io/2016/10/12/boondoggle-the-vr-music-visualizer/) describing the visualizer.
+Here's a [blog post](https://conorstokes.github.io/2016/10/12/boondoggle-the-vr-music-visualizer) describing the visualizer.
 
 Currently only targetted at Windows and D3D 11. Supports Oculus HMD targets, with OpenVR hopefully coming soon.
 
